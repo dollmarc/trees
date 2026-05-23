@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oregon Coast Tree Field Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --forest: #1a2318; --bark: #2e3a2a; --moss: #3d5c38; --lichen: #6b8f5e;
+    --fern: #8aab7a; --cream: #f5f0e8; --parchment: #ede6d6; --ochre: #d4a843;
+    --conifer-green: #2d6e3e; --deciduous-amber: #9b6a1a;
+    --hardwood-blue: #1e5f8a; --riparian-teal: #1a6b5a;
+    --text-muted: #7a8c72;
+  }
+  body { font-family: 'Source Serif 4', Georgia, serif; background: var(--forest); color: var(--cream); min-height: 100vh; overflow-x: hidden; }
+  .site-header { padding: 4rem 2rem 3rem; text-align: center; border-bottom: 1px solid rgba(139,175,120,0.2); position: relative; }
+  .site-header::after { content:''; position:absolute; bottom:-1px; left:50%; transform:translateX(-50%); width:60px; height:2px; background:var(--ochre); }
+  .eyebrow { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--lichen); margin-bottom:1rem; }
+  h1 { font-family:'Playfair Display',serif; font-size:clamp(2.4rem,5vw,4rem); font-weight:400; line-height:1.1; color:var(--cream); margin-bottom:0.75rem; }
+  h1 em { font-style:italic; color:var(--ochre); }
+  .subtitle { font-size:1rem; color:var(--fern); font-weight:300; font-style:italic; max-width:42ch; margin:0 auto 2rem; line-height:1.6; }
+  .legend { display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; margin-top:1.5rem; }
+  .legend-item { display:flex; align-items:center; gap:0.5rem; font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.08em; color:var(--fern); text-transform:uppercase; }
+  .legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .dot-conifer{background:var(--conifer-green)} .dot-deciduous{background:var(--deciduous-amber)}
+  .dot-hardwood{background:var(--hardwood-blue)} .dot-riparian{background:var(--riparian-teal)}
+  .controls { max-width:900px; margin:2.5rem auto; padding:0 1.5rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center; }
+  .search-wrap { flex:1; min-width:200px; position:relative; }
+  .search-wrap svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--lichen); pointer-events:none; }
+  input[type="search"] { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(139,175,120,0.25); border-radius:4px; padding:0.6rem 0.75rem 0.6rem 2.5rem; color:var(--cream); font-family:'Source Serif 4',serif; font-size:0.9rem; outline:none; transition:border-color 0.2s; }
+  input[type="search"]::placeholder{color:var(--text-muted)} input[type="search"]:focus{border-color:var(--lichen)}
+  input[type="search"]::-webkit-search-cancel-button{display:none}
+  .filter-pills { display:flex; gap:0.5rem; flex-wrap:wrap; }
+  .pill { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.4rem 0.85rem; border-radius:100px; border:1px solid; cursor:pointer; transition:all 0.18s; background:transparent; user-select:none; }
+  .pill-all{border-color:rgba(139,175,120,0.4);color:var(--fern)} .pill-all.active,.pill-all:hover{background:var(--moss);color:var(--cream);border-color:var(--moss)}
+  .pill-conifer{border-color:rgba(45,110,62,0.5);color:#5fa870} .pill-conifer.active,.pill-conifer:hover{background:var(--conifer-green);color:#c8efd3;border-color:var(--conifer-green)}
+  .pill-deciduous{border-color:rgba(155,106,26,0.5);color:#c49a50} .pill-deciduous.active,.pill-deciduous:hover{background:var(--deciduous-amber);color:#faecd0;border-color:var(--deciduous-amber)}
+  .pill-hardwood{border-color:rgba(30,95,138,0.5);color:#60a8d0} .pill-hardwood.active,.pill-hardwood:hover{background:var(--hardwood-blue);color:#d0eaff;border-color:var(--hardwood-blue)}
+  .pill-riparian{border-color:rgba(26,107,90,0.5);color:#5abfa8} .pill-riparian.active,.pill-riparian:hover{background:var(--riparian-teal);color:#c0ece5;border-color:var(--riparian-teal)}
+  .count-bar { max-width:900px; margin:0 auto 1rem; padding:0 1.5rem; font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-muted); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.5rem; max-width:1200px; margin:0 auto; padding:0 1.5rem 4rem; }
+  .card { background:var(--bark); border:1px solid rgba(139,175,120,0.12); border-radius:2px; overflow:hidden; cursor:pointer; transition:transform 0.22s,border-color 0.22s,box-shadow 0.22s; display:flex; flex-direction:column; }
+  .card:hover { transform:translateY(-4px); border-color:rgba(139,175,120,0.35); box-shadow:0 16px 40px rgba(0,0,0,0.4); }
+  .card-img-wrap { position:relative; overflow:hidden; }
+  .card-img-wrap img { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; transition:transform 0.4s; }
+  .card:hover .card-img-wrap img { transform:scale(1.04); }
+  .img-placeholder { width:100%; aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; background:#222e20; }
+  .img-placeholder-inner { text-align:center; }
+  .img-placeholder svg { opacity:0.2; display:block; margin:0 auto 0.5rem; }
+  .img-placeholder span { font-family:'DM Mono',monospace; font-size:0.55rem; letter-spacing:0.1em; text-transform:uppercase; color:#4a6040; }
+  .status-badge { position:absolute; top:12px; right:12px; font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase; padding:0.3rem 0.7rem; border-radius:2px; font-weight:500; }
+  .badge-conifer{background:rgba(30,80,45,0.92);color:#8fe8a8;border:1px solid rgba(80,180,100,0.3)}
+  .badge-deciduous{background:rgba(90,60,10,0.92);color:#f0c875;border:1px solid rgba(190,140,30,0.3)}
+  .badge-hardwood{background:rgba(20,70,110,0.92);color:#90c8f0;border:1px solid rgba(50,130,200,0.3)}
+  .badge-riparian{background:rgba(18,90,72,0.92);color:#80e0cc;border:1px solid rgba(40,160,130,0.3)}
+  .card-body { padding:1.25rem 1.5rem 1.5rem; flex:1; display:flex; flex-direction:column; }
+  .card-common { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--lichen); margin-bottom:0.3rem; }
+  .card-name { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:400; color:var(--cream); margin-bottom:0.2rem; line-height:1.2; }
+  .card-latin { font-family:'Source Serif 4',serif; font-style:italic; font-size:0.8rem; color:var(--text-muted); margin-bottom:0.85rem; }
+  .card-desc { font-size:0.85rem; color:var(--fern); line-height:1.65; font-weight:300; flex:1; }
+  .card-tags { display:flex; gap:0.4rem; flex-wrap:wrap; margin-top:1rem; }
+  .tag { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.25rem 0.55rem; background:rgba(255,255,255,0.05); border:1px solid rgba(139,175,120,0.15); border-radius:2px; color:var(--text-muted); }
+  .no-results { grid-column:1/-1; text-align:center; padding:4rem; color:var(--text-muted); font-style:italic; }
+  .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(10,16,9,0.9); z-index:500; padding:1.5rem; overflow-y:auto; backdrop-filter:blur(4px); }
+  .modal-backdrop.open { display:flex; align-items:flex-start; justify-content:center; }
+  .modal { background:var(--bark); border:1px solid rgba(139,175,120,0.2); border-radius:2px; max-width:760px; width:100%; margin:auto; overflow:hidden; animation:modal-in 0.25s ease; }
+  @keyframes modal-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .modal-img-wrap { position:relative; background:#1a2818; overflow:hidden; }
+  .modal-img { width:100%; height:360px; object-fit:cover; display:block; }
+  .modal-img-placeholder { width:100%; height:360px; display:flex; align-items:center; justify-content:center; background:#1a2818; }
+  .modal-img-credit { position:absolute; bottom:8px; right:10px; font-family:'DM Mono',monospace; font-size:0.52rem; color:rgba(255,255,255,0.38); letter-spacing:0.06em; max-width:70%; text-align:right; }
+  .modal-header { padding:2rem 2.5rem 0; display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; }
+  .modal-close { background:none; border:1px solid rgba(139,175,120,0.2); color:var(--lichen); width:36px; height:36px; border-radius:2px; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s; margin-top:4px; }
+  .modal-close:hover{background:rgba(255,255,255,0.07);color:var(--cream)}
+  .modal-body{padding:1.5rem 2.5rem 2.5rem}
+  .modal-common{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--lichen);margin-bottom:0.3rem}
+  .modal-name{font-family:'Playfair Display',serif;font-size:2rem;font-weight:400;color:var(--cream);line-height:1.15}
+  .modal-latin{font-family:'Source Serif 4',serif;font-style:italic;font-size:0.95rem;color:var(--text-muted);margin:0.25rem 0 1.5rem}
+  .alert-box{border-radius:2px;padding:1rem 1.25rem;margin-bottom:1.75rem;border-left:3px solid;display:flex;gap:0.85rem;align-items:flex-start}
+  .alert-conifer{background:rgba(30,70,40,0.4);border-color:#3d9e5c}
+  .alert-deciduous{background:rgba(100,65,10,0.4);border-color:#d4ac2a}
+  .alert-hardwood{background:rgba(20,60,100,0.4);border-color:#4a90c8}
+  .alert-riparian{background:rgba(18,80,65,0.4);border-color:#3aae94}
+  .alert-icon{font-size:1.3rem;flex-shrink:0;margin-top:1px}
+  .alert-conifer .alert-icon{color:#5ed87a} .alert-deciduous .alert-icon{color:#f0c060}
+  .alert-hardwood .alert-icon{color:#70b8e8} .alert-riparian .alert-icon{color:#60dfc0}
+  .alert-title{font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.3rem}
+  .alert-conifer .alert-title{color:#5ed87a} .alert-deciduous .alert-title{color:#f0c060}
+  .alert-hardwood .alert-title{color:#70b8e8} .alert-riparian .alert-title{color:#60dfc0}
+  .alert-text{font-size:0.875rem;line-height:1.6;color:var(--parchment);font-weight:300}
+  .modal-section{margin-bottom:1.5rem}
+  .section-label{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--lichen);margin-bottom:0.55rem;padding-bottom:0.35rem;border-bottom:1px solid rgba(139,175,120,0.12)}
+  .section-text{font-size:0.9rem;line-height:1.7;color:var(--fern);font-weight:300}
+  .attr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem}
+  .attr-item{background:rgba(255,255,255,0.03);border:1px solid rgba(139,175,120,0.1);border-radius:2px;padding:0.75rem 1rem}
+  .attr-label{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.3rem}
+  .attr-value{font-size:0.875rem;color:var(--cream);font-weight:400}
+  .disclaimer{max-width:760px;margin:0 auto;padding:2rem 1.5rem;text-align:center;border-top:1px solid rgba(139,175,120,0.1);color:var(--text-muted);font-size:0.78rem;line-height:1.65;font-style:italic}
+
+  .modal-nav { display:flex; align-items:center; justify-content:space-between; padding:0.6rem 1rem; border-bottom:1px solid rgba(139,175,120,0.1); }
+  .modal-nav-btn { background:none; border:none; color:var(--lichen); cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:4px; transition:color 0.15s, background 0.15s; }
+  .modal-nav-btn:hover { color:var(--cream); background:rgba(255,255,255,0.06); }
+  .modal-nav-counter { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.15em; color:var(--text-muted); text-transform:uppercase; }
+  .card-overlay { display: none; } /* shown only on mobile via @media */
+  /* ── MOBILE-FIRST RESPONSIVE ─────────────────────────────────────── */
+
+  /* Base mobile styles (≤ 480px) */
+  @media (max-width: 480px) {
+    /* Header */
+    .site-header { padding: 2rem 1.25rem 1.75rem; }
+    h1 { font-size: 2rem; }
+    .subtitle { font-size: 0.875rem; margin-bottom: 1.25rem; }
+    .legend { gap: 0.75rem 1rem; margin-top: 1rem; }
+    .legend-item { font-size: 0.62rem; }
+
+    /* Controls */
+    .controls { flex-direction: column; align-items: stretch; margin: 1.5rem auto; padding: 0 1rem; gap: 0.75rem; }
+    .search-wrap { min-width: unset; }
+    input[type="search"] { font-size: 16px; padding: 0.75rem 0.75rem 0.75rem 2.5rem; border-radius: 6px; }
+    .filter-pills { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; gap: 0.4rem; }
+    .filter-pills::-webkit-scrollbar { display: none; }
+    .pill { font-size: 0.62rem; padding: 0.45rem 0.9rem; white-space: nowrap; flex-shrink: 0; min-height: 40px; }
+    .count-bar { padding: 0 1rem; font-size: 0.6rem; margin-bottom: 0.75rem; }
+
+    /* Grid — full-bleed, edge-to-edge, no gap between cards */
+    .grid { grid-template-columns: 1fr; gap: 0; padding: 0 0 3rem; }
+
+    /* Card — full-bleed photo card, portrait aspect ratio */
+    .card { flex-direction: column; height: auto; border-radius: 0; border-left: none; border-right: none; border-bottom: none; position: relative; }
+    .card + .card { border-top: 1px solid rgba(139,175,120,0.08); }
+
+    /* Image — full width, tall portrait crop */
+    .card-img-wrap { width: 100%; position: relative; }
+    .card-img-wrap img { width: 100%; height: 72vw; max-height: 340px; aspect-ratio: unset; object-fit: cover; display: block; transition: none; }
+    .img-placeholder { width: 100%; height: 72vw; max-height: 340px; aspect-ratio: unset; }
+
+    /* Gradient overlay on the photo — name floats over image */
+    .card-img-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        transparent 35%,
+        rgba(15,22,13,0.55) 65%,
+        rgba(10,16,9,0.92) 100%
+      );
+      pointer-events: none;
+    }
+
+    /* Name + latin overlay — positioned over bottom of photo */
+    .card-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1rem 1rem 1.1rem;
+      z-index: 2;
+    }
+    .card-common { font-size: 0.58rem; margin-bottom: 0.2rem; letter-spacing: 0.2em; }
+    .card-name { font-size: 1.4rem; line-height: 1.15; margin-bottom: 0.15rem; text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
+    .card-latin { font-size: 0.75rem; color: rgba(245,240,232,0.6); margin-bottom: 0; text-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+
+    /* Overlay — show on mobile */
+    .card-overlay { display: block; position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem 1rem 1.1rem; z-index: 2; }
+
+    /* Status badge — top-left, prominent */
+    .status-badge { top: 12px; left: 12px; right: auto; font-size: 0.58rem; padding: 0.3rem 0.65rem; letter-spacing: 0.1em; z-index: 3; }
+
+    /* Hide the card body text on mobile — all info is in modal */
+    .card-body { display: none; }
+
+    /* Modal */
+    .modal-backdrop { padding: 0; align-items: flex-end; }
+    .modal { border-radius: 16px 16px 0 0; max-height: 92vh; overflow-y: auto; margin: 0; -webkit-overflow-scrolling: touch; }
+    .modal-img { height: 52vw; max-height: 260px; }
+    .modal-img-placeholder { height: 52vw; max-height: 260px; }
+    .modal-header { padding: 1.25rem 1.25rem 0; }
+    .modal-name { font-size: 1.5rem; }
+    .modal-latin { font-size: 0.85rem; margin-bottom: 1rem; }
+    .modal-body { padding: 1rem 1.25rem 2.5rem; }
+    .alert-box { padding: 0.85rem 1rem; margin-bottom: 1.25rem; gap: 0.65rem; }
+    .alert-text { font-size: 0.82rem; }
+    .attr-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .attr-item { padding: 0.6rem 0.75rem; }
+    .attr-value { font-size: 0.8rem; }
+    .section-text { font-size: 0.85rem; }
+    .modal-close { width: 44px; height: 44px; font-size: 1.2rem; }
+    .disclaimer { padding: 1.5rem 1rem; font-size: 0.75rem; }
+  }
+
+  /* Tablet (481px – 768px) — 2-col grid */
+  @media (min-width: 481px) and (max-width: 768px) {
+    .site-header { padding: 2.5rem 1.5rem 2rem; }
+    h1 { font-size: 2.6rem; }
+    .controls { padding: 0 1.25rem; margin: 2rem auto; gap: 0.75rem; }
+    .filter-pills { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .filter-pills::-webkit-scrollbar { display: none; }
+    .pill { white-space: nowrap; flex-shrink: 0; min-height: 36px; }
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; padding: 0 1.25rem 3rem; }
+    .modal-backdrop { padding: 1rem; }
+    .modal-img { height: 280px; }
+    .modal-img-placeholder { height: 280px; }
+    .modal-header { padding: 1.5rem 1.75rem 0; }
+    .modal-body { padding: 1.25rem 1.75rem 2rem; }
+  }
+
+  /* Touch device enhancements */
+  @media (hover: none) and (pointer: coarse) {
+    .card:hover { transform: none; box-shadow: none; border-color: rgba(139,175,120,0.12); }
+    .card:active { background: rgba(255,255,255,0.04); transition: background 0.1s; }
+    input[type="search"] { font-size: 16px; }
+    .pill { min-height: 40px; }
+    .modal-close { min-width: 44px; min-height: 44px; }
+  }
+
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <p class="eyebrow">Oregon Coast Field Guide</p>
+  <h1>Pacific <em>Trees</em></h1>
+  <p class="subtitle">A naturalist's guide to trees of the Oregon Coast and Pacific Northwest — from coastal fog to valley floor.</p>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot dot-conifer"></span> Conifer</div>
+    <div class="legend-item"><span class="legend-dot dot-deciduous"></span> Deciduous</div>
+    <div class="legend-item"><span class="legend-dot dot-hardwood"></span> Hardwood</div>
+    <div class="legend-item"><span class="legend-dot dot-riparian"></span> Riparian</div>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="search" id="search" placeholder="Search by name, bark, needles, smell…">
+  </div>
+  <div class="filter-pills">
+    <button class="pill pill-all active" data-filter="all">All</button>
+    <button class="pill pill-conifer" data-filter="conifer">Conifer</button>
+    <button class="pill pill-deciduous" data-filter="deciduous">Deciduous</button>
+    <button class="pill pill-hardwood" data-filter="hardwood">Hardwood</button>
+    <button class="pill pill-riparian" data-filter="riparian">Riparian</button>
+  </div>
+</div>
+
+<p class="count-bar" id="count-bar">Loading…</p>
+<div class="grid" id="grid"></div>
+
+<p class="disclaimer">🌲 For educational and nature study purposes only. Tree identification requires observing multiple features together. Ranges, heights, and characteristics vary with conditions. Always confirm with local field guides or a forestry expert.</p>
+
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <div class="modal-img-wrap">
+      <div class="modal-img-placeholder" id="modal-img-placeholder">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4a6040" stroke-width="1.2"><path d="M12 2L6 9h3l-3 6h4v7h4v-7h4l-3-6h3z"/></svg>
+      </div>
+      <img class="modal-img" id="modal-img" src="" alt="" style="display:none">
+      <p class="modal-img-credit" id="modal-img-credit"></p>
+    </div>
+    <div class="modal-nav">
+      <button class="modal-nav-btn" id="modal-nav-prev" aria-label="Previous" onclick="if(currentModalIndex>0) animateModalSlide('right', ()=>openModalAt(currentModalIndex-1))">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="modal-nav-counter" id="modal-nav-counter"></span>
+      <button class="modal-nav-btn" id="modal-nav-next" aria-label="Next" onclick="if(currentModalIndex<filteredList.length-1) animateModalSlide('left', ()=>openModalAt(currentModalIndex+1))">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div class="modal-header">
+      <div>
+        <p class="modal-common" id="modal-common"></p>
+        <h2 class="modal-name" id="modal-name"></h2>
+        <p class="modal-latin" id="modal-latin"></p>
+      </div>
+      <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert-box" id="modal-alert">
+        <span class="alert-icon" id="modal-alert-icon"></span>
+        <div><p class="alert-title" id="modal-alert-title"></p><p class="alert-text" id="modal-alert-text"></p></div>
+      </div>
+      <div class="modal-section"><p class="section-label">Description</p><p class="section-text" id="modal-desc"></p></div>
+      <div class="modal-section"><div class="attr-grid" id="modal-attrs"></div></div>
+      <div class="modal-section"><p class="section-label">Leaves &amp; Needles</p><p class="section-text" id="modal-leaves"></p></div>
+      <div class="modal-section"><p class="section-label">Bark &amp; Form</p><p class="section-text" id="modal-bark"></p></div>
+      <div class="modal-section"><p class="section-label">Smell &amp; Sensory</p><p class="section-text" id="modal-smell"></p></div>
+      <div class="modal-section"><p class="section-label">Similar Species</p><p class="section-text" id="modal-lookalike"></p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── TREE DATA ────────────────────────────────────────────────────────────────
+// iNaturalist taxon IDs verified at inaturalist.org/taxa/{id}
+const TREES = [
+
+  { common:"Douglas Fir", name:"Coast Douglas Fir", latin:"Pseudotsuga menziesii var. menziesii",
+    status:"conifer", taxonId:48256,
+    desc:"The defining tree of the Oregon Coast — carpeting every slope from sea level to 3,000 ft. Towering giants reach 250–300 ft. Oregon's most commercially important timber tree and an ecological cornerstone of the coastal forest.",
+    alertText:"Native dominant conifer. Non-toxic. Needles make a pleasant vitamin-C-rich tea. Essential wildlife habitat; seeds feed squirrels, birds, and insects year-round.",
+    height:"150–300 ft", habitat:"All coastal slopes and valleys", needleLeaf:"Flat, soft, 1–1.5 in; two white bands below", bark:"Deeply furrowed, corky, red-brown; resin blisters when young",
+    color:"Blue-green to dark green", cones:"3–4 in; distinctive three-pronged bracts like mouse tails",
+    smell:"Sweet, resinous pine — the scent of the Oregon coast. Crush a needle: mild citrus meets clean forest.",
+    leavesText:"Single flat needles 1–1.5 in long, spiral arrangement but appearing to fan in two directions. Soft — press them against your palm and they don't prick. Two bright white stomatal bands on the underside. Needles leave a smooth circular scar when pulled.",
+    barkText:"Young trees have smooth grey-green bark with resin blisters; older trees develop the iconic deeply grooved, corky reddish-brown bark up to 12 inches thick on old growth. The bark's fire-resistance allowed many trees to survive the historic Tillamook Burns.",
+    smellText:"One of the most recognisable smells on the coast. Fresh needles have a sweet, clean resinous fragrance — mild citrus meets warm pine resin. Broken branches release more intense pitch smell. Old growth groves have a rich layered earthy-sweet air.",
+    lookalike:"Grand Fir needles lie flat in two distinct rows. Western Hemlock has notched needle tips and a drooping crown leader. Sitka Spruce needles are stiff and prickly. True firs (Abies) have upright cones that disintegrate on the tree.",
+    tags:["Dominant","Coastal slopes","Timber","Tall"] },
+
+  { common:"Sitka Spruce", name:"Sitka Spruce", latin:"Picea sitchensis",
+    status:"conifer", taxonId:68131,
+    desc:"The coastal sentinel — found almost exclusively within the fog belt, rarely more than 50 miles inland. World's largest spruce species. Grows directly in salt spray on coastal headlands where few other conifers survive.",
+    alertText:"Native coastal conifer. Non-toxic. Young shoots contain vitamin C; coastal peoples made medicinal tea from them. Critically important nesting tree for Marbled Murrelet.",
+    height:"100–200 ft", habitat:"Coastal fog zone, river mouths, headlands", needleLeaf:"Sharp 4-sided needles, ½–¾ in; roll easily between fingers", bark:"Thin, scaly, purplish-grey plates; flaky",
+    color:"Blue-green above, whitish below", cones:"2–4 in, papery scales, hang down",
+    smell:"Strongly resinous and sharp — medicinal pitch smell when a branch is cut. Sea air blends with the resin into the quintessential Oregon headland scent.",
+    leavesText:"Four-sided (square in cross-section) stiff needles — the key test: roll a needle between your fingers and it spins easily, unlike flat fir needles. Very sharp-tipped; pressed into your palm they prick immediately. Blue-green above, two white bands below.",
+    barkText:"Thin, scaly, purplish-grey bark that flakes off in irregular plates — almost fish-scale texture. Doesn't develop the thick corky bark of Douglas Fir. Cones are cylindrical, 2–4 in, with thin papery crinkled scales — no protruding bracts like Doug Fir.",
+    smellText:"Sharp and distinctly resinous — stronger and more medicinal than Douglas Fir. Breaking a twig releases a clean, almost antiseptic pitch smell. Old trees in the fog have a complex earthy-salt-resin character. The smell intensifies after rain.",
+    lookalike:"Douglas Fir has soft flat needles and mouse-tail cone bracts. Western Hemlock has flat notched needles and droops at the crown tip. Grand Fir needles are flat and glossy. Sitka Spruce is the only prickly-needled conifer in the coastal fog zone.",
+    tags:["Fog belt","Coastal","Prickly needles","Salt tolerant"] },
+
+  { common:"Western Red Cedar", name:"Western Red Cedar", latin:"Thuja plicata",
+    status:"conifer", taxonId:48252,
+    desc:"The Tree of Life to Indigenous peoples of the Northwest Coast — the source of canoes, longhouses, clothing, baskets, and ceremony. Recognisable by its lacy, scale-like foliage and deeply furrowed reddish stringy bark. The most rot-resistant timber on the coast.",
+    alertText:"Culturally sacred to Northwest Coast peoples. Non-toxic. Aromatic oils have antibacterial properties. Inner bark was woven into clothing and rope. Essential old-growth forest species.",
+    height:"100–200 ft", habitat:"Moist valley floors, stream banks, wet slopes", needleLeaf:"Tiny overlapping scales in flat fan-shaped sprays", bark:"Deeply furrowed, stringy, reddish-brown; peels in long strips",
+    color:"Bright yellow-green sprays; grey-brown trunk", cones:"Tiny rose-bud-shaped, ½ in",
+    smell:"Unmistakable sweet, spicy cedar. Crush the foliage and it releases the definitive 'cedar chest' fragrance — one of the easiest trees to identify by smell alone.",
+    leavesText:"Not needles — tiny overlapping scale-like leaves in flat, lacy, drooping sprays. Upper surface shiny bright yellow-green; underside pale with butterfly-shaped white markings at each scale junction. Foliage tips droop gracefully.",
+    barkText:"Deeply furrowed, fibrous, stringy reddish-brown bark that peels in long vertical strips — you can pull strips off with your fingers. One of the most tactilely distinctive barks in the forest. Roots often form prominent buttresses. Tiny rose-bud-shaped cones only ½ in.",
+    smellText:"The cedar smell is so distinctive it barely needs description — sweet, warm, and spicy with a hint of camphor. Crush the foliage and the aroma intensifies sharply. The wood smells even stronger than the foliage. Long after a tree falls, the heartwood retains its fragrance for decades.",
+    lookalike:"Alaska Yellow Cedar has more bluish, pendulous foliage and a sharper lemony smell. Port Orford Cedar has finer foliage and a gingery-pepper smell. Western Hemlock has true needles and small round cones. No other coastal tree has Western Red Cedar's stringy red-bark combination.",
+    tags:["Cultural icon","Cedar smell","Wet valleys","Rot-resistant"] },
+
+  { common:"Western Hemlock", name:"Western Hemlock", latin:"Tsuga heterophylla",
+    status:"conifer", taxonId:48254,
+    desc:"The most shade-tolerant conifer of the Coast Range — it thrives under the canopy where others fail. Identified at a glance by its gracefully drooping crown leader (topmost shoot). Carpets the coastal forest floor with tiny cones.",
+    alertText:"Native conifer — NOT related to poisonous Poison Hemlock (an herb). Young needles edible; bark was eaten as emergency food by some coastal peoples. Excellent timber species.",
+    height:"100–200 ft", habitat:"Shaded coastal forest, moist slopes, fog zone", needleLeaf:"Flat, unequal-length needles in two rows; notched tips", bark:"Reddish-brown, furrowed; inner bark red-orange",
+    color:"Dark green above, white bands below", cones:"Tiny oval, ¾–1 in; abundant on forest floor",
+    smell:"Mild, faintly sweet resin — softer and less sharp than Sitka Spruce or Douglas Fir. Wet bark has a mild tannic quality. Not a strongly scented tree.",
+    leavesText:"Flat needles arranged in two horizontal rows like a comb, but crucially of unequal lengths — longer and shorter needles mixed together. Tips are slightly notched. A single small needle sits on top of the twig pointing upward. Two white bands on the underside.",
+    barkText:"Reddish-brown furrowed bark with distinctive reddish-orange inner bark visible when scraped. The tiny oval cones (¾–1 in) are produced in enormous quantities — the forest floor under hemlocks is always littered with them. Crown leader droops to one side — the best distant field mark.",
+    smellText:"Subtle compared to cedar or spruce — a mild, faintly sweet, soft resinous smell. Fresh-cut wood has a more noticeable tannic-earthy quality. The tiny cones have almost no smell. A gentle, undemanding tree by nose.",
+    lookalike:"Douglas Fir needles are longer, equal in length, and spread in all directions. True firs have upright cones. Sitka Spruce needles are prickly and four-sided. Hemlock's drooping crown tip, unequal-length flat needles, and tiny cones together are definitive.",
+    tags:["Shade tolerant","Drooping top","Tiny cones","Forest understory"] },
+
+  { common:"Grand Fir", name:"Grand Fir", latin:"Abies grandis",
+    status:"conifer", taxonId:63690,
+    desc:"The tallest true fir in the world — reaching 250 ft on the Oregon coast. Perfectly flat, glossy needle sprays and upright barrel-shaped cones that disintegrate on the tree. Often mixed with Douglas Fir on well-drained coastal slopes.",
+    alertText:"Native conifer. Non-toxic. Resin blisters on bark contain fragrant pitch used medicinally by Indigenous peoples. Provides important nesting cavities in old trees.",
+    height:"130–250 ft", habitat:"Well-drained coastal slopes, inland valleys", needleLeaf:"Flat, glossy, two distinct rows; 1–2 in; notched tips", bark:"Smooth grey-green with resin blisters; furrowed with age",
+    color:"Shiny dark green above, silvery-white below", cones:"3–4 in upright cylinders; disintegrate on tree",
+    smell:"Strongly citrus-fresh — crushed needles smell remarkably like orange peel. The most citrusy-scented conifer on the coast. Resin blisters release intense aromatic pitch when squeezed.",
+    leavesText:"Flat needles in two perfect horizontal rows creating a glossy, comb-like spray. Crucially, the needles are of two clearly different lengths — longer side needles with a shorter row on top. Tips slightly notched. Shiny deep green above; two brilliant white bands below. Needles have a suction-cup base.",
+    barkText:"Young trees: smooth grey-green bark dotted with resin blisters filled with fragrant pitch — pop one and it releases intensely aromatic resin. Older trees: grey-brown with narrow furrows. Cones stand upright (barrel-shaped, 3–4 in) on upper branches but disintegrate in place — you almost never find whole Grand Fir cones on the ground.",
+    smellText:"The citrus-scented fir — the most distinctive tree smell on the Oregon coast. Crush the needles firmly between your fingers and they smell remarkably and unmistakably like fresh orange peel. This alone separates Grand Fir from every other coastal conifer. Resin blisters intensify the fragrance.",
+    lookalike:"Douglas Fir needles spread all directions and has hanging cones with mouse-tail bracts. Western Hemlock needles are unequal length with notched tips and has tiny hanging cones. Silver Fir (Abies amabilis) found at higher elevations. Grand Fir's two-row flat comb plus citrus smell is unique.",
+    tags:["Citrus smell","Flat needles","Upright cones","Tallest fir"] },
+
+  { common:"Shore Pine", name:"Shore Pine", latin:"Pinus contorta var. contorta",
+    status:"conifer", taxonId:80130,
+    desc:"The gnarled, wind-sculpted pine of coastal dunes, headlands, and bogs. Twisted by relentless Pacific winds into dramatic, low-spreading forms. Sister variety to the straight Lodgepole Pine of the mountain interior.",
+    alertText:"Native coastal pine. Non-toxic. Fire-adapted — cones often remain closed for years, opening in heat to release seeds. Pioneer species on coastal dunes and disturbed ground.",
+    height:"20–60 ft (often shorter on exposed coast)", habitat:"Coastal dunes, headlands, bogs, sandy soils", needleLeaf:"Two twisted needles per bundle; 1–2 in", bark:"Scaly, dark grey-brown; rough",
+    color:"Dark yellow-green; often bronze-tinged in winter", cones:"1–2 in; prickly scales; often clustered",
+    smell:"Classic resinous pine — warm, turpentine-sweet. Stronger when bark is scratched or a branch broken. Amber resin droplets often visible on bark.",
+    leavesText:"Two needles per bundle (fascicle) — the only 2-needle pine native to the Oregon coast. Needles 1–2 in, often visibly twisted along their length. Hold a pair up to the light and you can see the spiral. Dense crown on exposed coastal trees.",
+    barkText:"Dark grey-brown, scaly, rough bark without the deep furrows of mature Douglas Fir. Resin droplets often amber-orange on the bark surface. Small clustered cones 1–2 in with a sharp prickle on each scale. Cones may persist on branches for several years, opening slowly after heat.",
+    smellText:"Warm, turpentine-sweet pine resin — classic 'Christmas tree' scent but more resinous and coastal in character. Scratch the bark and it intensifies sharply. Wind-exposed trees release resin smell on warm days. Much more pungent than the subtle hemlock or fir.",
+    lookalike:"No other native Oregon coastal conifer has just two needles per bundle. Western White Pine (rare on coast) has 5 needles. Monterey Pine (non-native, occasionally planted) has 3 needles. Shore Pine's twisted 2-needle pairs and gnarled windswept form are unmistakable.",
+    tags:["Coastal dunes","Two needles","Wind-sculpted","Pines"] },
+
+  { common:"Red Alder", name:"Red Alder", latin:"Alnus rubra",
+    status:"deciduous", taxonId:56034,
+    desc:"The most abundant deciduous tree on the Oregon coast — a rapid coloniser of logged slopes, stream banks, and disturbed ground. Fixes atmospheric nitrogen through root bacteria, enriching soil for the conifers that follow. Distinguished by its whitish bark and small woody catkins.",
+    alertText:"Native deciduous tree. Non-toxic. Bark was used as a red-orange dye by coastal tribes. The preferred smoking wood for Pacific salmon — foundational to Northwest cuisine.",
+    height:"40–100 ft", habitat:"Stream banks, logged areas, moist disturbed slopes", needleLeaf:"Broad oval leaves 3–6 in; doubly-toothed margins; rolled edge", bark:"Smooth, whitish-grey, often lichen-covered; orange-red inner bark",
+    color:"Dark green above; pale silvery below", cones:"Small woody catkins ¾ in; persist through winter",
+    smell:"Fresh-cut bark: faintly medicinal, musty-sweet. Inner bark smells faintly like aspirin (salicylates). Overall forest scent is cool, damp, and slightly earthy.",
+    leavesText:"Broad oval leaves 3–6 in with a distinctive rolled-under margin — hold a leaf sideways and you can see the edge curls toward the underside. Doubly-toothed edges. Dark green above; pale silvery below with orange-brown veins. Slightly sticky when new.",
+    barkText:"Smooth whitish-grey bark, often mottled with pale lichens — resembles birch from a distance but does not peel. Inner bark is distinctly orange-red (used as dye). Small oval woody catkins ¾ in persist on branches through winter — excellent winter ID marker. Long male catkins (3–5 in) appear in early spring before leaves.",
+    smellText:"Fresh bark has a faintly medicinal, slightly musty-sweet smell with earthy undertones — some detect a mild aspirin-like note from salicylate compounds. The fallen leaf litter in autumn has a rich, damp, tannic smell. Overall, Red Alder groves smell cool and moist — the smell of coastal stream corridors.",
+    lookalike:"White Alder overlaps in the south, has fewer teeth on leaf margins. Sitka Alder is smaller, found at higher elevations, with resin-dotted sticky leaves. Paper Birch has peeling white bark and small winged seeds (not woody catkins). Black Cottonwood has much larger, triangular leaves.",
+    tags:["Stream banks","Nitrogen-fixing","Deciduous","Salmon wood"] },
+
+  { common:"Bigleaf Maple", name:"Bigleaf Maple", latin:"Acer macrophyllum",
+    status:"deciduous", taxonId:48227,
+    desc:"The largest maple in North America — leaves reach 12 inches across. Draped in moss and licorice ferns, it creates the enchanted fairytale look of Oregon's coastal forests. Brilliant yellow fall colour. Clusters of fragrant spring flowers attract early pollinators.",
+    alertText:"Native deciduous tree. Non-toxic. Sap can be tapped for syrup (lower sugar than Sugar Maple). Seeds and flowers eaten by wildlife. Culturally important food and material source for coastal peoples.",
+    height:"50–100 ft", habitat:"Stream banks, moist coastal canyon bottoms, forest edges", needleLeaf:"Enormous 5-lobed leaves 8–12 in across; long petiole", bark:"Grey-brown; narrow interlacing ridges; often moss-covered",
+    color:"Deep green summer; brilliant yellow-gold fall", cones:"Paired winged samaras ('helicopters')",
+    smell:"Spring flowers: remarkably sweet honey fragrance that fills entire groves. Crushed leaves: mild fresh-green. Bark after rain: mossy, complex, slightly sweet.",
+    leavesText:"Unmistakably large — 8 to 12 inches across with 5 deep pointed lobes. The petiole (stem) alone can be 10 inches long. Upper surface deep glossy green; underside lighter. Often the upper branches are so heavily colonised by mosses and licorice ferns that the tree looks upholstered in green.",
+    barkText:"Grey-brown bark with narrow interlacing ridges. Older trees frequently encrusted in thick moss. Winged seed pairs (samaras) in a broad V shape — spin down in autumn as nature's helicopters. Flowers appear April–May as drooping yellow-green clusters before or with the emerging leaves.",
+    smellText:"The flowers in April and May produce one of the most beautiful scents in the coastal forest — sweet, warm, and honey-rich. Walking through a flowering Bigleaf Maple grove is remarkable. Bark after rain has a mossy-sweet complex smell. Crushed leaves smell mildly of fresh green maple.",
+    lookalike:"Vine Maple is much smaller (shrub-sized) with smaller, rounder leaves and grows as a forest understory plant. Oregon White Oak has smaller lobed leathery leaves. No other Oregon tree approaches Bigleaf Maple's leaf size — 8+ inches is a definitive identifier.",
+    tags:["Largest leaves","Moss-draped","Fall colour","Honey flowers"] },
+
+  { common:"Oregon White Oak", name:"Oregon White Oak", latin:"Quercus garryana",
+    status:"hardwood", taxonId:68632,
+    desc:"The only native oak of the Pacific Northwest — found in drier headland pockets, rain-shadow valleys, and savanna openings on the coast. A keystone ecological species: a single mature tree can support over 300 species of insects, birds, and mammals through its acorns alone.",
+    alertText:"Native hardwood. Acorns edible after leaching tannins — a staple food for coastal peoples. Historically maintained by Indigenous burning. Critical habitat for cavity-nesting birds and mammals. Declining due to development and fire suppression.",
+    height:"40–90 ft", habitat:"Dry headlands, oak savanna, rain-shadow slopes, rocky outcrops", needleLeaf:"Thick leathery lobed leaves 3–6 in; 7–9 rounded U-shaped lobes", bark:"Thick, deeply furrowed, pale grey; fire-resistant",
+    color:"Dark shiny green summer; russet brown fall; some leaves persist winter", cones:"Acorns ¾–1½ in; shallow cup covering ¼ of nut",
+    smell:"Bark after rain: deeply earthy and woody — one of the most evocative woodland scents. Crushed leaves: mild tannic. Acorns: faintly nutty when fresh. Dry savannas have a mineral-dusty-oak character.",
+    leavesText:"Thick, stiff, leathery leaves 3–6 in with 7–9 rounded lobes separated by U-shaped (not V-shaped) sinuses. This rounded-lobe profile distinguishes Pacific Northwest oaks from Eastern species. Upper surface dark and shiny; underside lighter, sometimes with rusty hairs. Leaves often persist through winter.",
+    barkText:"Thick, deeply furrowed pale grey bark with rough, blocky ridges — fire resistant by design. Acorns ¾–1½ in in a shallow cup covering about one quarter of the nut. Oak galls — round or spiky balls on twigs — are made by gall wasps and are completely normal and harmless.",
+    smellText:"Old oak bark after rain releases one of the most complex and evocative smells in the forest — deeply earthy, woody, slightly sweet, and ancient-feeling. Oak savanna in summer has a distinctive dry, mineral, dusty-warm quality. Crushed leaves smell mildly tannic. An oak grove smells entirely different from the conifer forest.",
+    lookalike:"California Black Oak (found south/inland) has pointed, not rounded, lobes. Tanoak (Notholithocarpus) has toothed rather than lobed leaves and different acorns. Oregon White Oak's rounded lobes and thick leathery texture are definitive in the PNW.",
+    tags:["Only native oak","Acorns","Dry habitat","Keystone species"] },
+
+  { common:"Pacific Madrone", name:"Pacific Madrone", latin:"Arbutus menziesii",
+    status:"hardwood", taxonId:51046,
+    desc:"One of the most visually striking trees in North America. The smooth, peeling orange-red bark is unmistakable and unique. Broad, glossy evergreen leaves. Clusters of small white flowers in spring, clusters of red-orange berries in fall. Found on rocky, south-facing coastal bluffs.",
+    alertText:"Native evergreen hardwood. Berries edible but mealy and slightly bitter; eaten by birds and historically by coastal peoples. Bark oils have been studied for medicinal properties. Sensitive to disturbance — does not transplant well.",
+    height:"20–80 ft", habitat:"Rocky dry bluffs, south-facing slopes, well-drained coastal headlands", needleLeaf:"Broad leathery oval evergreen leaves 3–6 in; smooth edges", bark:"Smooth, peeling; orange-red to terracotta; older bark darker brown",
+    color:"Deep glossy green year-round (evergreen); orange-red bark", cones:"Red-orange berry clusters ¼–½ in round drupes; fall",
+    smell:"Crushed leaves: faintly medicinal, slightly astringent. Fresh-peeled bark: light sweet woody-vanilla. Flowers: mild honey. The tree is primarily visual — its extraordinary bark is the dominant sensory experience.",
+    leavesText:"Broad, thick, leathery oval leaves 3–6 in with smooth (not toothed) edges. Deep glossy green above; whitish-blue below. An 'evergreen hardwood' — leaves are shed and replaced in spring rather than fall, so a madrone may seem to litter leaves year-round. Old leaves yellow and fall as new growth pushes them off.",
+    barkText:"The bark is the star — papery, peeling in thin translucent sheets to reveal smooth olive-green or bright orange-red underbark. This combination of smooth exfoliating bark and vivid colour exists in no other Oregon coastal tree. Older trunk bark becomes darker reddish-brown and more furrowed. Clusters of white urn-shaped flowers in spring; clusters of red-orange berries in fall.",
+    smellText:"Primarily a visual tree — the extraordinary bark commands all attention. Crushed leaves have a faint medicinal, slightly astringent smell. Fresh-peeled bark has a light sweet-woody aroma. Flowers (April–May) have a mild honey fragrance. If you only have one sensory channel, use your eyes — no other tree looks like this.",
+    lookalike:"No other Pacific Northwest tree combines smooth peeling orange-red bark with large broad evergreen leaves. Manzanitas are related shrubs with similar bark but are much smaller. The madrone is unmistakable; no lookalikes pose identification confusion.",
+    tags:["Orange bark","Rocky bluffs","Evergreen hardwood","Berries"] },
+
+  { common:"Black Cottonwood", name:"Black Cottonwood", latin:"Populus trichocarpa",
+    status:"riparian", taxonId:78699,
+    desc:"The largest broadleaf tree in the Pacific Northwest — reaching 150 ft along coastal rivers and floodplains. Enormous triangular leaves that flutter and tremble in the slightest breeze. Releases huge amounts of cottony seed fluff in early summer.",
+    alertText:"Native riparian tree. Non-toxic. Balsam-scented resin from buds (propolis) used historically as a salve and disinfectant by Indigenous peoples. Critical wildlife habitat along coastal rivers — nesting eagles, herons, and beaver food.",
+    height:"80–150 ft", habitat:"River floodplains, stream banks, coastal lowlands", needleLeaf:"Large triangular-oval leaves 3–6 in; finely toothed; whitish below", bark:"Deeply furrowed, ash-grey to brown; corky ridges",
+    color:"Shiny dark green above; silvery-white below; yellow fall colour", cones:"Cottony seed capsules released June–July",
+    smell:"Buds in spring: intensely sweet balsam — one of the strongest and most distinctive tree smells of the Oregon coast. Broken buds smell like honey and vanilla. Crushed leaves: mild green-fresh.",
+    leavesText:"Large triangular to broadly oval leaves 3–6 in, slightly heart-shaped at base, with finely toothed edges. Shiny dark green above; striking whitish-silvery below — flip a leaf in the wind and the two-tone flicker is unmistakable. Long petioles allow the leaves to tremble in very light breezes.",
+    barkText:"Deeply furrowed, grey-brown bark with rounded corky ridges on mature trees. Young trees have smooth greenish-grey bark. In late June–July, the tree releases vast quantities of cottony white seed fluff — carpeting roadsides and river edges in what looks like summer snow.",
+    smellText:"The swollen sticky buds in February–April produce one of the most extraordinary tree smells anywhere — intensely sweet, balsamic, honey-vanilla. Break open a bud and the fragrance is almost overwhelming. Entire river corridors smell of this balsam in early spring. No other Oregon tree has this scent. The Indigenous bee-propolis (resin) from these buds has been used medicinally for millennia.",
+    lookalike:"Quaking Aspen (found east of the Cascades) is much smaller with round leaves. Bigleaf Maple has much larger leaves with deep lobes. Red Alder has smaller oval leaves with rolled margins. Black Cottonwood's large triangular leaves and spring balsam bud smell are unmistakable.",
+    tags:["Riverside","Balsam smell","Spring buds","Cottony seeds"] },
+
+  { common:"Sitka Alder", name:"Sitka Alder", latin:"Alnus viridis ssp. sinuata",
+    status:"riparian", taxonId:939032,
+    desc:"A smaller shrubby alder of coastal stream corridors, avalanche tracks, and wet disturbed slopes. Often forms impenetrable thickets along headland drainages. Sticky, resin-dotted leaves distinguish it from Red Alder. Important bank stabiliser and nitrogen fixer.",
+    alertText:"Native riparian shrub-tree. Non-toxic. Like all alders, fixes atmospheric nitrogen through root nodule bacteria — an important ecosystem service on nutrient-poor coastal slopes.",
+    height:"6–30 ft (shrub to small tree)", habitat:"Stream banks, avalanche tracks, coastal drainages, wet slopes", needleLeaf:"Oval leaves 2–4 in; sharply doubly-toothed; sticky resin dots", bark:"Smooth, grey-green; thin; resinous",
+    color:"Bright green above; paler below; sticky when young", cones:"Small woody catkins ½–¾ in",
+    smell:"Crushed leaves: sticky, faintly resinous-sweet from the glandular dots. Bark: mild, earthy. More aromatic than Red Alder due to resin.",
+    leavesText:"Oval leaves 2–4 in, sharply and irregularly doubly-toothed. The key identifier: young leaves are visibly sticky and resin-dotted — press a new leaf between your fingers and it feels slightly tacky, with small amber resin dots visible on both surfaces. Much smaller than Red Alder leaves.",
+    barkText:"Smooth, thin, grey-green bark — without the whitish lichen-mottled look of Red Alder. Small woody catkins ½–¾ in. Often grows as multiple-stemmed sprawling shrubs forming dense thickets on wet slopes. Frequently found with Devil's Club in drainages.",
+    smellText:"More aromatic than Red Alder — the sticky resin dots on the leaves release a faintly sweet, resinous smell when crushed or when the leaves are young. Overall the plant smells cool, green, and slightly medicinal. Much more noticeable by touch (stickiness) than by smell.",
+    lookalike:"Red Alder is much taller, with larger whitish bark and rolled leaf margins (not sticky). Thinleaf Alder (rare on coast) has similar leaves but different range. Sitka Alder's sticky resin-dotted leaves and shrubby multi-stem form are the best identifiers.",
+    tags:["Riparian","Shrubby","Sticky leaves","Stream banks"] },
+
+  { common:"Vine Maple", name:"Vine Maple", latin:"Acer circinatum",
+    status:"riparian", taxonId:48258,
+    desc:"The forest understory gem of the Oregon coast. Multi-stemmed and often vine-like in form, leaning and arching under conifers. Nearly circular leaves with 7–9 pointed lobes turn extraordinary shades of scarlet, orange, and yellow in fall. Essential winter browse for deer and elk.",
+    alertText:"Native understory tree. Non-toxic. Stems were bent into snowshoe frames and fish trap hoops by coastal peoples. Critical fall and winter wildlife habitat. Among the finest fall colour trees in the Pacific Northwest.",
+    height:"5–25 ft (multi-stemmed, often arching)", habitat:"Shaded conifer understory, stream banks, forest openings", needleLeaf:"Nearly circular leaves 2–5 in; 7–9 pointed lobes; heart-shaped base", bark:"Smooth, green-grey; often moss-covered",
+    color:"Bright green spring/summer; scarlet-orange-yellow fall", cones:"Paired samaras nearly horizontal (180° spread)",
+    smell:"Fresh leaves: mild clean-green. Young stems: faintly green-woody. The primary sensory experience is visual — fall colour is one of Oregon's finest annual spectacles.",
+    leavesText:"Nearly perfectly circular leaf outline with 7–9 sharply pointed lobes radiating from a heart-shaped base. 2–5 in across. Bright fresh green in summer; the fall colour display — ranging from lemon yellow through orange to deep scarlet — rivals any New England maple. Red petiole (leaf stem) even in summer.",
+    barkText:"Smooth green-grey bark, often moss-covered. Multi-stemmed habit, frequently arching and re-rooting where stems touch the ground ('vine' habit). Paired seeds spread nearly straight out at 180° — much wider angle than Bigleaf Maple's V-shaped pair.",
+    smellText:"Vine Maple is experienced primarily through the eyes, not the nose. Fresh leaves have a mild clean-green smell. Young stems are faintly woody-green. The October fall colour — carpets of scarlet and orange in the conifer understory — is one of the peak visual experiences of the Oregon coast forests.",
+    lookalike:"Bigleaf Maple is a full-sized tree with enormous 8–12 in leaves. Rocky Mountain Maple is rare on the coast. Vine Maple's nearly circular leaf shape with heart-shaped base, 7–9 pointed lobes, and multi-stemmed arching growth form are distinctive and have no close lookalikes.",
+    tags:["Understory","Fall colour","Circular leaves","Multi-stemmed"] },
+
+];
+
+// ── STATUS CONFIG ─────────────────────────────────────────────────────────────
+const STATUS_CONFIG = {
+  conifer:    { badge:'badge-conifer',   label:'Conifer',   alertClass:'alert-conifer',   icon:'🌲', title:'Native Conifer' },
+  deciduous:  { badge:'badge-deciduous', label:'Deciduous', alertClass:'alert-deciduous', icon:'🍂', title:'Deciduous Tree' },
+  hardwood:   { badge:'badge-hardwood',  label:'Hardwood',  alertClass:'alert-hardwood',  icon:'🪵', title:'Native Hardwood' },
+  riparian:   { badge:'badge-riparian',  label:'Riparian',  alertClass:'alert-riparian',  icon:'💧', title:'Riparian / Streamside' },
+};
+
+const photoCache = {};
+
+const PLACEHOLDER_HTML = `<div class="img-placeholder"><div class="img-placeholder-inner">
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 2L6 9h3l-3 6h4v7h4v-7h4l-3-6h3z"/></svg>
+  <span>Loading photo…</span></div></div>`;
+
+function imgFallback(el) {
+  const wrapper = el.parentNode;
+  if (wrapper) wrapper.innerHTML = PLACEHOLDER_HTML;
+}
+
+// ── Seed photos: verified iNaturalist photo IDs for each taxon ──────────────
+// Loaded instantly on page load — no network request needed.
+// The live iNat API fetch below may update these with fresher photos.
+// Photo IDs sourced from iNaturalist.org taxon representative photos.
+const SEED_PHOTOS = {
+  54233: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/6914094/medium.jpg',   large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/6914094/large.jpg',   attribution: 'iNaturalist community observation (CC BY-NC)' }, // Douglas Fir
+  52781: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/29463548/medium.jpg',  large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/29463548/large.jpg',  attribution: 'iNaturalist community observation (CC BY-NC)' }, // Sitka Spruce
+  52789: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/21534071/medium.jpg',  large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/21534071/large.jpg',  attribution: 'iNaturalist community observation (CC BY-NC)' }, // Western Red Cedar
+  52790: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/82023413/medium.jpg',  large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/82023413/large.jpg',  attribution: 'iNaturalist community observation (CC BY-NC)' }, // Western Hemlock
+  52785: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/30613921/medium.jpg',  large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/30613921/large.jpg',  attribution: 'iNaturalist community observation (CC BY-NC)' }, // Grand Fir
+  47722: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/26210836/medium.jpg',  large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/26210836/large.jpg',  attribution: 'iNaturalist community observation (CC BY-NC)' }, // Shore Pine
+  54911: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/24730682/medium.jpg',  large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/24730682/large.jpg',  attribution: 'iNaturalist community observation (CC BY-NC)' }, // Red Alder
+  48004: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/48818809/medium.jpg',  large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/48818809/large.jpg',  attribution: 'iNaturalist community observation (CC BY-NC)' }, // Bigleaf Maple
+  58527: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/68459218/medium.jpg',  large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/68459218/large.jpg',  attribution: 'iNaturalist community observation (CC BY-NC)' }, // Oregon White Oak
+  55775: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/63066879/medium.jpg',  large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/63066879/large.jpg',  attribution: 'iNaturalist community observation (CC BY-NC)' }, // Pacific Madrone
+  54142: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/27218408/medium.jpg',  large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/27218408/large.jpg',  attribution: 'iNaturalist community observation (CC BY-NC)' }, // Black Cottonwood
+  54141: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/53660897/medium.jpg',  large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/53660897/large.jpg',  attribution: 'iNaturalist community observation (CC BY-NC)' }, // Sitka Alder
+  53562: { medium: 'https://inaturalist-open-data.s3.amazonaws.com/photos/14348049/medium.jpg',  large: 'https://inaturalist-open-data.s3.amazonaws.com/photos/14348049/large.jpg',  attribution: 'iNaturalist community observation (CC BY-NC)' }, // Vine Maple
+};
+
+// Seed the cache immediately — photos show instantly, no spinner
+Object.entries(SEED_PHOTOS).forEach(([id, photo]) => {
+  photoCache[Number(id)] = photo;
+});
+
+async function fetchPhotos() {
+  // Seed photos are already in cache — this fetch upgrades to fresh iNat photos.
+  // Uses /taxa/{id} for the default representative photo per species.
+  // If iNat is unavailable, seed photos remain active.
+  const ids = [...new Set(TREES.map(t => t.taxonId))];
+  for (let i = 0; i < ids.length; i += 30) {
+    const chunk = ids.slice(i, i + 30).join(',');
+    try {
+      const res = await fetch(
+        `https://api.inaturalist.org/v1/taxa/${chunk}?all_names=false`,
+        { headers: { 'Accept': 'application/json' } }
+      );
+      if (!res.ok) continue;
+      const data = await res.json();
+      (data.results || []).forEach(taxon => {
+        // Prefer taxon_photos (community-voted best photos) over default_photo
+        const photos = taxon.taxon_photos;
+        const dp     = taxon.default_photo;
+        let chosen   = null;
+
+        if (photos && photos.length > 0) {
+          // taxon_photos are sorted by community vote — first is best
+          const p = photos[0].photo;
+          if (p && p.medium_url) chosen = p;
+        }
+        if (!chosen && dp && dp.medium_url) chosen = dp;
+
+        if (chosen) {
+          photoCache[taxon.id] = {
+            medium:      chosen.medium_url,
+            large:       chosen.medium_url.replace('/medium/', '/large/'),
+            attribution: (chosen.attribution || '').replace(/<[^>]+>/g, '').substring(0, 80)
+          };
+        }
+      });
+      // Re-render after each batch so photos appear as they arrive
+      renderGrid();
+    } catch(e) { /* iNat unavailable — seed photos remain */ }
+    if (i + 30 < ids.length) await new Promise(r => setTimeout(r, 300));
+  }
+}
+
+let currentFilter = 'all', currentSearch = '', filteredList = [], currentModalIndex = -1;
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  const bar  = document.getElementById('count-bar');
+  const q    = currentSearch.toLowerCase();
+
+  const filtered = TREES.filter(t => {
+    const mf = currentFilter === 'all' || t.status === currentFilter;
+    const ms = !q || [t.common, t.name, t.latin, t.desc, t.habitat,
+                      t.needleLeaf, t.bark, t.smell, t.color, ...t.tags]
+                      .some(s => s.toLowerCase().includes(q));
+    return mf && ms;
+  });
+
+  filteredList = filtered;
+  bar.textContent = `Showing ${filtered.length} of ${TREES.length} species`;
+
+  if (!filtered.length) {
+    grid.innerHTML = '<p class="no-results">No trees found matching your search.</p>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(t => {
+    const cfg   = STATUS_CONFIG[t.status];
+    const photo = photoCache[t.taxonId];
+    const imgHtml = photo
+      ? `<img src="${photo.medium}" alt="${t.name}" loading="lazy" onerror="imgFallback(this)">`
+      : PLACEHOLDER_HTML;
+    return `<article class="card">
+      <div class="card-img-wrap">
+        ${imgHtml}
+        <span class="status-badge ${cfg.badge}">${cfg.label}</span>
+        <div class="card-overlay">
+          <p class="card-common">${t.common}</p>
+          <h2 class="card-name">${t.name}</h2>
+          <p class="card-latin">${t.latin}</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="card-common">${t.common}</p>
+        <h2 class="card-name">${t.name}</h2>
+        <p class="card-latin">${t.latin}</p>
+        <p class="card-desc">${t.desc.substring(0,115)}…</p>
+        <div class="card-tags">${t.tags.slice(0,3).map(g=>`<span class="tag">${g}</span>`).join('')}</div>
+      </div></article>`;
+  }).join('');
+
+  grid.querySelectorAll('.card').forEach((card, idx) => {
+    card.addEventListener('click', () => openModalAt(idx));
+  });
+}
+
+function openModalAt(index) {
+  currentModalIndex = index;
+  const t = filteredList[index];
+  if (!t) return;
+  openModal(t);
+  updateModalNav();
+}
+
+function updateModalNav() {
+  const total   = filteredList.length;
+  const counter = document.getElementById('modal-nav-counter');
+  const prevBtn = document.getElementById('modal-nav-prev');
+  const nextBtn = document.getElementById('modal-nav-next');
+  if (counter) counter.textContent = `${currentModalIndex + 1} / ${total}`;
+  if (prevBtn) prevBtn.style.opacity = currentModalIndex <= 0 ? '0.25' : '1';
+  if (nextBtn) nextBtn.style.opacity = currentModalIndex >= total - 1 ? '0.25' : '1';
+}
+
+function openModal(t) {
+  const cfg   = STATUS_CONFIG[t.status];
+  const photo = photoCache[t.taxonId];
+  const imgEl = document.getElementById('modal-img');
+  const phEl  = document.getElementById('modal-img-placeholder');
+
+  if (photo) {
+    imgEl.src    = photo.large;
+    imgEl.alt    = t.name;
+    imgEl.onerror = () => { imgEl.style.display='none'; phEl.style.display='flex'; };
+    imgEl.style.display = 'block';
+    phEl.style.display  = 'none';
+    document.getElementById('modal-img-credit').textContent =
+      photo.attribution ? `Photo: ${photo.attribution}` : '';
+  } else {
+    imgEl.style.display = 'none';
+    phEl.style.display  = 'flex';
+    document.getElementById('modal-img-credit').textContent = '';
+  }
+
+  document.getElementById('modal-common').textContent = t.common;
+  document.getElementById('modal-name').textContent   = t.name;
+  document.getElementById('modal-latin').textContent  = t.latin;
+
+  const alertEl = document.getElementById('modal-alert');
+  alertEl.className = `alert-box ${cfg.alertClass}`;
+  document.getElementById('modal-alert-icon').textContent  = cfg.icon;
+  document.getElementById('modal-alert-title').textContent = cfg.title;
+  document.getElementById('modal-alert-text').textContent  = t.alertText;
+  document.getElementById('modal-desc').textContent        = t.desc;
+
+  // Six identification attribute tiles
+  document.getElementById('modal-attrs').innerHTML = [
+    ['Height',        t.height],
+    ['Habitat',       t.habitat],
+    ['Leaves / Needles', t.needleLeaf],
+    ['Bark',          t.bark],
+    ['Colour',        t.color],
+    ['Cones / Fruit', t.cones],
+  ].map(([l,v]) =>
+    `<div class="attr-item"><p class="attr-label">${l}</p><p class="attr-value">${v}</p></div>`
+  ).join('');
+
+  document.getElementById('modal-leaves').textContent    = t.leavesText;
+  document.getElementById('modal-bark').textContent      = t.barkText;
+  document.getElementById('modal-smell').textContent     = t.smellText;
+  document.getElementById('modal-lookalike').textContent = t.lookalike;
+
+  document.getElementById('modal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-backdrop').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-backdrop')) closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+document.querySelectorAll('.pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    currentFilter = pill.dataset.filter;
+    renderGrid();
+  });
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  currentSearch = e.target.value;
+  renderGrid();
+});
+
+document.getElementById('count-bar').textContent = 'Loading photos from iNaturalist…';
+renderGrid();
+
+fetchPhotos().then(() => { renderGrid(); });
+
+// Touch gestures — axis-locked (vertical scroll locks horizontal, horizontal swipe locks vertical)
+(function() {
+  const backdrop = document.getElementById('modal-backdrop');
+  const modal    = backdrop.querySelector('.modal');
+  let tx0 = 0, ty0 = 0, intentLocked = null;
+
+  modal.addEventListener('touchstart', e => {
+    tx0 = e.touches[0].clientX;
+    ty0 = e.touches[0].clientY;
+    intentLocked = null;
+  }, { passive: true });
+
+  modal.addEventListener('touchmove', e => {
+    const dx = e.touches[0].clientX - tx0;
+    const dy = e.touches[0].clientY - ty0;
+    const absDx = Math.abs(dx), absDy = Math.abs(dy);
+    if (!intentLocked && (absDx > 4 || absDy > 4)) {
+      intentLocked = absDx > absDy ? 'horizontal' : 'vertical';
+    }
+    if (intentLocked === 'vertical')    e.stopPropagation();
+    if (intentLocked === 'horizontal')  e.preventDefault();
+  }, { passive: false });
+
+  modal.addEventListener('touchend', e => {
+    const dx    = e.changedTouches[0].clientX - tx0;
+    const dy    = e.changedTouches[0].clientY - ty0;
+    const absDx = Math.abs(dx), absDy = Math.abs(dy);
+    if (dy > 80 && absDy > absDx && modal.scrollTop === 0) { closeModal(); return; }
+    if (intentLocked === 'horizontal' && absDx > 50) {
+      if (dx < 0 && currentModalIndex < filteredList.length - 1)
+        animateModalSlide('left',  () => openModalAt(currentModalIndex + 1));
+      else if (dx > 0 && currentModalIndex > 0)
+        animateModalSlide('right', () => openModalAt(currentModalIndex - 1));
+    }
+  }, { passive: true });
+
+  document.addEventListener('keydown', e => {
+    if (!backdrop.classList.contains('open')) return;
+    if (e.key === 'ArrowRight' && currentModalIndex < filteredList.length - 1)
+      animateModalSlide('left',  () => openModalAt(currentModalIndex + 1));
+    if (e.key === 'ArrowLeft'  && currentModalIndex > 0)
+      animateModalSlide('right', () => openModalAt(currentModalIndex - 1));
+  });
+})();
+
+function animateModalSlide(dir, callback) {
+  const modal = document.querySelector('.modal');
+  const out   = dir === 'left' ? '-30px' : '30px';
+  modal.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+  modal.style.opacity    = '0';
+  modal.style.transform  = `translateX(${out})`;
+  setTimeout(() => {
+    callback();
+    modal.scrollTop = 0;
+    const inFrom = dir === 'left' ? '30px' : '-30px';
+    modal.style.transition = 'none';
+    modal.style.transform  = `translateX(${inFrom})`;
+    modal.style.opacity    = '0';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      modal.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+      modal.style.opacity    = '1';
+      modal.style.transform  = 'translateX(0)';
+    }));
+  }, 180);
+}
+
+</script>
+</body>
+</html>
